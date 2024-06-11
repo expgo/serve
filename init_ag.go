@@ -9,5 +9,5 @@ import (
 )
 
 var (
-	__ServiceContext = factory.Singleton[ServiceContext]().Get()
+	__Context = factory.Getter[Context](factory.Singleton[Context]())
 )
