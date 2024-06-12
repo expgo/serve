@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+//go:generate ag
+
 const ServiceTimeout = 10 * time.Second
 
 // @Singleton(localGetter)
@@ -20,27 +22,14 @@ type Context struct {
 }
 
 func (c *Context) Init() {
-	spec := SpecWithDebugLogger(c.l)
-	c.Supervisor = suture.New("serve", spec)
-
+	c.Supervisor = suture.New("serve", spec(infoEventHook(c.l)))
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 	c.errChan = c.ServeBackground(c.ctx)
 }
 
 func (c *Context) Down() error {
 	c.cancel()
-
 	return <-c.errChan
-}
-
-func SpecWithDebugLogger(l log.Logger) suture.Spec {
-	return spec(func(e suture.Event) {
-		l.Debug(e)
-	})
-}
-
-func SpecWithInfoLogger(l log.Logger) suture.Spec {
-	return spec(infoEventHook(l))
 }
 
 func spec(eventHook suture.EventHook) suture.Spec {
@@ -52,15 +41,12 @@ func spec(eventHook suture.EventHook) suture.Spec {
 	}
 }
 
-// infoEventHook prints service failures and failures to stop services at level
-// info. All other events and identical, consecutive failures are logged at
-// debug only.
 func infoEventHook(l log.Logger) suture.EventHook {
 	var prevTerminate suture.EventServiceTerminate
 	return func(ei suture.Event) {
 		switch e := ei.(type) {
 		case suture.EventStopTimeout:
-			l.Infof("%s: Service %s failed to terminate in a timely manner", e.SupervisorName, e.ServiceName)
+			l.Infof("%s: Service '%s' failed to terminate in time", e.SupervisorName, e.ServiceName)
 		case suture.EventServicePanic:
 			l.Warn("Caught a service panic, which shouldn't happen")
 			l.Info(e)
