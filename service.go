@@ -45,5 +45,5 @@ func (s *service) Error() error {
 }
 
 func (s *service) String() string {
-	return fmt.Sprintf("Service@%p created by %v", s, s.creator)
+	return fmt.Sprintf("%s:Service@%p", s.creator, s)
 }
