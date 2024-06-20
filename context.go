@@ -46,12 +46,12 @@ func infoEventHook(l log.Logger) suture.EventHook {
 	return func(ei suture.Event) {
 		switch e := ei.(type) {
 		case suture.EventStopTimeout:
-			l.Infof("%s: Service '%s' failed to terminate in time", e.SupervisorName, e.ServiceName)
+			l.Infof("%s: '%s' failed to terminate in time", e.SupervisorName, e.ServiceName)
 		case suture.EventServicePanic:
-			l.Warn("Caught a service panic, which shouldn't happen")
-			l.Info(e)
+			l.Warnf("%s: '%s' panic", e.SupervisorName, e.ServiceName)
+			l.Warn(e)
 		case suture.EventServiceTerminate:
-			msg := fmt.Sprintf("%s: service %s failed: %s", e.SupervisorName, e.ServiceName, e.Err)
+			msg := fmt.Sprintf("%s: '%s' failed: %v", e.SupervisorName, e.ServiceName, e.Err)
 			if e.ServiceName == prevTerminate.ServiceName && e.Err == prevTerminate.Err {
 				l.Debug(msg)
 			} else {

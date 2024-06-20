@@ -124,7 +124,7 @@ func TestAddMethods(t *testing.T) {
 func TestAddMethods1(t *testing.T) {
 	abc := &Abc{}
 
-	AddFuncs([]func(context.Context) error{abc.Run, abc.Timeout, abc.ReadPanic}, "abc", suture.Spec{})
+	AddFuncs([]func(context.Context) error{abc.Serve, abc.Run, abc.Timeout, abc.ReadPanic}, "abc", suture.Spec{})
 
 	time.Sleep(1 * time.Minute)
 
