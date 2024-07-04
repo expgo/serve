@@ -58,8 +58,11 @@ func AddServeFuncs(svr suture.Service, funcs []func(ctx context.Context) error, 
 }
 
 func AddFunc(fn func(ctx context.Context) error, serveName string, spec suture.Spec) suture.ServiceToken {
-	svr := AsService(fn, serveName)
-	return AddServe(svr, serveName, spec)
+	sup := suture.New(serveName, spec)
+
+	sup.Add(AsService(fn, _getMethodName(fn)))
+
+	return __Context().Add(sup)
 }
 
 func AddFuncs(funcs []func(ctx context.Context) error, serveName string, spec suture.Spec) suture.ServiceToken {

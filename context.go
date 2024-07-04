@@ -51,7 +51,7 @@ func infoEventHook(l log.Logger) suture.EventHook {
 			l.Warnf("%s: '%s' panic", e.SupervisorName, e.ServiceName)
 			l.Warn(e)
 		case suture.EventServiceTerminate:
-			msg := fmt.Sprintf("%s: '%s' failed: %v", e.SupervisorName, e.ServiceName, e.Err)
+			msg := fmt.Sprintf("%s:%s failed: %v", e.SupervisorName, e.ServiceName, e.Err)
 			if e.ServiceName == prevTerminate.ServiceName && e.Err == prevTerminate.Err {
 				l.Debug(msg)
 			} else {
