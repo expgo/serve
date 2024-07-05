@@ -11,11 +11,19 @@ import (
 	"time"
 )
 
+//@Log
+//go:generate ag
+
 func init() {
 	config.DefaultFile("test.yml")
 }
 
 var errNum = 0
+
+func Normal(ctx context.Context) error {
+	logger.Info("normal text")
+	return nil
+}
 
 func Error(ctx context.Context) error {
 	errNum += 1
@@ -36,6 +44,7 @@ func TestServer(t *testing.T) {
 	ide1 := AddFunc(Error, "error1", suture.Spec{})
 	ide2 := AddFunc(Error, "error2", suture.Spec{})
 	ide3 := AddFunc(Error, "error3", suture.Spec{})
+	ide4 := AddFunc(Normal, "normal", suture.Spec{})
 
 	time.Sleep(20 * time.Second)
 
@@ -48,6 +57,10 @@ func TestServer(t *testing.T) {
 	time.Sleep(20 * time.Second)
 
 	RemoveAndWait(ide1, 3*time.Second)
+
+	time.Sleep(3 * time.Second)
+
+	RemoveAndWait(ide4, 3*time.Second)
 
 	time.Sleep(3 * time.Second)
 
