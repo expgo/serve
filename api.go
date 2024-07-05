@@ -40,13 +40,11 @@ func AsService(fn func(ctx context.Context) error, creator string) Service {
 	}
 }
 
-func AddServe(svr suture.Service, serveName string, spec suture.Spec) suture.ServiceToken {
-	sup := suture.New(serveName, spec)
-	sup.Add(svr)
-	return __Context().Add(sup)
+func AddServe(serveName string, svr suture.Service, funcs ...func(ctx context.Context) error) suture.ServiceToken {
+	return AddServeWithSpec(serveName, svr, suture.Spec{}, funcs...)
 }
 
-func AddServeFuncs(svr suture.Service, funcs []func(ctx context.Context) error, serveName string, spec suture.Spec) suture.ServiceToken {
+func AddServeWithSpec(serveName string, svr suture.Service, spec suture.Spec, funcs ...func(ctx context.Context) error) suture.ServiceToken {
 	sup := suture.New(serveName, spec)
 	sup.Add(svr)
 
@@ -57,15 +55,15 @@ func AddServeFuncs(svr suture.Service, funcs []func(ctx context.Context) error, 
 	return __Context().Add(sup)
 }
 
-func AddFunc(fn func(ctx context.Context) error, serveName string, spec suture.Spec) suture.ServiceToken {
-	sup := suture.New(serveName, spec)
-
-	sup.Add(AsService(fn, _getMethodName(fn)))
-
-	return __Context().Add(sup)
+func AddFuncs(serveName string, funcs ...func(ctx context.Context) error) suture.ServiceToken {
+	return AddFuncsWithSpec(serveName, suture.Spec{}, funcs...)
 }
 
-func AddFuncs(funcs []func(ctx context.Context) error, serveName string, spec suture.Spec) suture.ServiceToken {
+func AddFuncsWithSpec(serveName string, spec suture.Spec, funcs ...func(ctx context.Context) error) suture.ServiceToken {
+	if len(funcs) == 0 {
+		panic("AddFuncs must with a func")
+	}
+
 	sup := suture.New(serveName, spec)
 
 	for _, f := range funcs {

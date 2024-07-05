@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/expgo/config"
-	"github.com/thejerf/suture/v4"
 	"reflect"
 	"runtime"
 	"testing"
@@ -41,10 +40,10 @@ func ErrorTimeoutRun(ctx context.Context) error {
 }
 
 func TestServer(t *testing.T) {
-	ide1 := AddFunc(Error, "error1", suture.Spec{})
-	ide2 := AddFunc(Error, "error2", suture.Spec{})
-	ide3 := AddFunc(Error, "error3", suture.Spec{})
-	ide4 := AddFunc(Normal, "normal", suture.Spec{})
+	ide1 := AddFuncs("error1", Error)
+	ide2 := AddFuncs("error2", Error)
+	ide3 := AddFuncs("error3", Error)
+	ide4 := AddFuncs("normal", Normal)
 
 	time.Sleep(20 * time.Second)
 
@@ -68,7 +67,7 @@ func TestServer(t *testing.T) {
 }
 
 func TestServerPanic(t *testing.T) {
-	AddFunc(ErrorPanic, "error", suture.Spec{})
+	AddFuncs("error", ErrorPanic)
 
 	time.Sleep(1 * time.Minute)
 
@@ -76,7 +75,7 @@ func TestServerPanic(t *testing.T) {
 }
 
 func TestTimeout(t *testing.T) {
-	AddFunc(ErrorTimeoutRun, "timeout", suture.Spec{})
+	AddFuncs("timeout", ErrorTimeoutRun)
 	_ = Down()
 }
 
@@ -101,9 +100,9 @@ func (a *Abc) Timeout(ctx context.Context) error {
 
 func TestObjectServe(t *testing.T) {
 	abc := &Abc{}
-	AddFunc(abc.Run, "abc_run", suture.Spec{})
-	AddFunc(abc.ReadPanic, "abc_read_panic", suture.Spec{})
-	AddFunc(abc.Timeout, "abc_timeout", suture.Spec{})
+	AddFuncs("abc_run", abc.Run)
+	AddFuncs("abc_read_panic", abc.ReadPanic)
+	AddFuncs("abc_timeout", abc.Timeout)
 
 	time.Sleep(1 * time.Minute)
 
@@ -127,7 +126,7 @@ func TestForMethodName(t *testing.T) {
 }
 
 func TestAddMethods(t *testing.T) {
-	AddFuncs([]func(context.Context) error{Error, ErrorPanic, ErrorTimeoutRun}, "AddMethods", suture.Spec{})
+	AddFuncs("AddMethods", Error, ErrorPanic, ErrorTimeoutRun)
 
 	time.Sleep(1 * time.Minute)
 
@@ -137,7 +136,7 @@ func TestAddMethods(t *testing.T) {
 func TestAddMethods1(t *testing.T) {
 	abc := &Abc{}
 
-	AddFuncs([]func(context.Context) error{abc.Serve, abc.Run, abc.Timeout, abc.ReadPanic}, "abc", suture.Spec{})
+	AddFuncs("abc", abc.Serve, abc.Run, abc.Timeout, abc.ReadPanic)
 
 	time.Sleep(1 * time.Minute)
 
@@ -147,7 +146,7 @@ func TestAddMethods1(t *testing.T) {
 func TestAddServeAndFuncs(t *testing.T) {
 	abc := &Abc{}
 
-	AddServeFuncs(abc, []func(context.Context) error{abc.Run, abc.Timeout, abc.ReadPanic}, "abc serve", suture.Spec{})
+	AddServe("abc serve", abc, abc.Run, abc.Timeout, abc.ReadPanic)
 
 	time.Sleep(1 * time.Minute)
 
