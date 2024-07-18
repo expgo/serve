@@ -81,6 +81,18 @@ func RemoveAndWait(id suture.ServiceToken, timeout time.Duration) error {
 	return __Context().RemoveAndWait(id, timeout)
 }
 
+func AddFuncsOnServe(id suture.ServiceToken, funcs ...func(ctx context.Context) error) {
+	__Context().supervisorLock.RLock()
+	sup, ok := __Context().supervisorMap[id]
+	__Context().supervisorLock.RUnlock()
+
+	if ok {
+		for _, f := range funcs {
+			sup.Add(AsService(f, _getMethodName(f)))
+		}
+	}
+}
+
 func Down() error {
 	return __Context().Down()
 }

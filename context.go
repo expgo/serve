@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/expgo/log"
+	"github.com/expgo/sync/wire"
 	"github.com/thejerf/suture/v4"
 	"time"
 )
@@ -15,21 +16,58 @@ const ServiceTimeout = 10 * time.Second
 // @Singleton(localGetter)
 type Context struct {
 	*suture.Supervisor
-	l       log.Logger `new:""`
-	cancel  context.CancelFunc
-	ctx     context.Context
-	errChan <-chan error
+	l              log.Logger `new:""`
+	cancel         context.CancelFunc
+	ctx            context.Context
+	errChan        <-chan error
+	supervisorMap  map[suture.ServiceToken]*suture.Supervisor
+	supervisorLock sync.RWMutex `new:""`
 }
 
 func (c *Context) Init() {
 	c.Supervisor = suture.New("serve", spec(infoEventHook(c.l)))
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 	c.errChan = c.ServeBackground(c.ctx)
+	c.supervisorMap = make(map[suture.ServiceToken]*suture.Supervisor)
 }
 
 func (c *Context) Down() error {
 	c.cancel()
+	c.supervisorMap = nil
 	return <-c.errChan
+}
+
+func (c *Context) Add(sup *suture.Supervisor) suture.ServiceToken {
+	id := c.Supervisor.Add(sup)
+
+	c.supervisorLock.Lock()
+	defer c.supervisorLock.Unlock()
+
+	c.supervisorMap[id] = sup
+
+	return id
+}
+
+func (c *Context) Remove(id suture.ServiceToken) error {
+	err := c.Supervisor.Remove(id)
+
+	c.supervisorLock.Lock()
+	defer c.supervisorLock.Unlock()
+
+	delete(c.supervisorMap, id)
+
+	return err
+}
+
+func (c *Context) RemoveAndWait(id suture.ServiceToken, timeout time.Duration) error {
+	err := c.Supervisor.RemoveAndWait(id, timeout)
+
+	c.supervisorLock.Lock()
+	defer c.supervisorLock.Unlock()
+
+	delete(c.supervisorMap, id)
+
+	return err
 }
 
 func spec(eventHook suture.EventHook) suture.Spec {
