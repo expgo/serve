@@ -2,10 +2,6 @@ module github.com/expgo/serve
 
 go 1.20
 
-replace (
-	github.com/expgo/log => /home/mind/peace/expgo/log
-)
-
 require (
 	github.com/expgo/config v0.0.0-20240604034842-bba83e76fa3c // indirect
 	github.com/expgo/factory v0.0.0-20240604035123-ea8cd0ce5f85 // indirect
