@@ -3,8 +3,9 @@ package serve
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
+
+	sync "github.com/expgo/sync/wire"
 
 	"github.com/expgo/log"
 	"github.com/thejerf/suture/v4"
