@@ -3,10 +3,11 @@ package serve
 import (
 	"context"
 	"fmt"
-	"github.com/expgo/log"
-	"github.com/expgo/sync/wire"
-	"github.com/thejerf/suture/v4"
+	"sync"
 	"time"
+
+	"github.com/expgo/log"
+	"github.com/thejerf/suture/v4"
 )
 
 //go:generate ag
@@ -98,9 +99,9 @@ func infoEventHook(l log.Logger) suture.EventHook {
 			prevTerminate = e
 			l.Debug(e) // Contains some backoff statistics
 		case suture.EventBackoff:
-			l.Debugf("%s: exiting the backoff state.", e.SupervisorName)
-		case suture.EventResume:
 			l.Debugf("%s: too many service failures - entering the backoff state.", e.SupervisorName)
+		case suture.EventResume:
+			l.Debugf("%s: resume - exiting the backoff state.", e.SupervisorName)
 		default:
 			l.Warn("Unknown suture supervisor event type", e.Type())
 			l.Info(e)
